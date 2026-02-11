@@ -254,22 +254,26 @@ function switchToWorkspace(index):
 
 | State | Visual Treatment |
 |-------|-----------------|
-| Normal | Default panel button style, standard text opacity |
-| Active (current workspace) | Semi-transparent highlight background (CSS class `.workspace-button-active-highlight`) |
+| Active (current workspace) | Brighter highlight background (CSS class `.workspace-button-active-highlight`) |
+| Occupied (has windows, not active) | Subtle highlight background (CSS class `.workspace-button-occupied`) |
 | Empty (no windows) | Reduced opacity (e.g., `opacity: 0.5`) |
 | Hover | Standard GNOME panel button hover effect |
 
 ### 6.2 Active Workspace Style
 
-The active workspace button uses a semi-transparent white (or accent color) highlight background.
-- CSS class: `.workspace-button-active-highlight`
+Three-tier visual hierarchy for workspace buttons:
+
+1. **Active** — Brighter semi-transparent white background (`rgba(255, 255, 255, 0.20)`)
+2. **Occupied** — Subtle semi-transparent white background (`rgba(255, 255, 255, 0.08)`)
+3. **Empty** — Dimmed text via reduced opacity (`opacity: 0.5`)
 
 ### 6.3 CSS Classes
 
 ```css
 .workspace-shortcuts-bar { }              /* Container */
-.workspace-button { }                     /* All buttons */
-.workspace-button-active-highlight { }    /* Active workspace (highlight) */
+.workspace-button { }                     /* All buttons (with border-radius) */
+.workspace-button-active-highlight { }    /* Active workspace (brighter highlight) */
+.workspace-button-occupied { }            /* Occupied workspace (subtle highlight) */
 .workspace-button-empty { }              /* Empty workspace (dimmed) */
 ```
 

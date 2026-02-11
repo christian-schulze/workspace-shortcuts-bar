@@ -12,9 +12,14 @@
     transition-duration: 150ms;
 }
 
+/* Occupied workspace (has windows, not active) */
+.workspace-button-occupied {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
 /* Active workspace: highlight style (background) */
 .workspace-button-active-highlight {
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: rgba(255, 255, 255, 0.30);
 }
 
 /* Empty workspace (no windows) */

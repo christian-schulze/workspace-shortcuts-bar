@@ -20,6 +20,7 @@ export default class WorkspaceShortcutsBar extends Extension {
         this._wmKeybindingSettings = new Gio.Settings({schema_id: 'org.gnome.desktop.wm.keybindings'});
         this._shellKeybindingSettings = new Gio.Settings({schema_id: 'org.gnome.shell.keybindings'});
         this._signalIds = [];
+        this._displaySignalIds = [];
         this._settingsSignalIds = [];
         this._wmSettingsSignalIds = [];
         this._registeredKeybindings = [];
@@ -61,6 +62,7 @@ export default class WorkspaceShortcutsBar extends Extension {
         this._wmKeybindingSettings = null;
         this._shellKeybindingSettings = null;
         this._signalIds = null;
+        this._displaySignalIds = null;
         this._settingsSignalIds = null;
         this._wmSettingsSignalIds = null;
         this._registeredKeybindings = null;
@@ -131,6 +133,8 @@ export default class WorkspaceShortcutsBar extends Extension {
                 .filter(w => !w.is_on_all_workspaces()).length === 0;
             if (isEmpty) {
                 button.add_style_class_name('workspace-button-empty');
+            } else if (i !== activeIndex) {
+                button.add_style_class_name('workspace-button-occupied');
             }
 
             button.connect('clicked', () => {
@@ -152,9 +156,40 @@ export default class WorkspaceShortcutsBar extends Extension {
         for (let i = 0; i < children.length; i++) {
             const button = children[i];
             button.remove_style_class_name('workspace-button-active-highlight');
+            button.remove_style_class_name('workspace-button-occupied');
 
             if (i === activeIndex) {
                 button.add_style_class_name('workspace-button-active-highlight');
+            } else if (!button.has_style_class_name('workspace-button-empty')) {
+                button.add_style_class_name('workspace-button-occupied');
+            }
+        }
+    }
+
+    _updateOccupiedState() {
+        if (!this._bar)
+            return;
+
+        const workspaceManager = global.workspace_manager;
+        const activeIndex = workspaceManager.get_active_workspace_index();
+        const children = this._bar.get_children();
+
+        for (let i = 0; i < children.length; i++) {
+            const button = children[i];
+            const workspace = workspaceManager.get_workspace_by_index(i);
+            if (!workspace)
+                continue;
+
+            const isEmpty = workspace.list_windows()
+                .filter(w => !w.is_on_all_workspaces()).length === 0;
+
+            button.remove_style_class_name('workspace-button-empty');
+            button.remove_style_class_name('workspace-button-occupied');
+
+            if (isEmpty) {
+                button.add_style_class_name('workspace-button-empty');
+            } else if (i !== activeIndex) {
+                button.add_style_class_name('workspace-button-occupied');
             }
         }
     }
@@ -397,6 +432,17 @@ export default class WorkspaceShortcutsBar extends Extension {
             workspaceManager.connect('active-workspace-changed', () => this._updateActiveButton())
         );
 
+        // Window tracking signals for occupied state
+        this._displaySignalIds.push(
+            global.display.connect('window-created', (_display, window) => {
+                this._updateOccupiedState();
+                const id = window.connect('unmanaging', () => {
+                    window.disconnect(id);
+                    this._updateOccupiedState();
+                });
+            })
+        );
+
         // Extension settings signals
         this._settingsSignalIds.push(
             this._settings.connect('changed::bar-position', () => {
@@ -447,6 +493,13 @@ export default class WorkspaceShortcutsBar extends Extension {
                 workspaceManager.disconnect(id);
             }
             this._signalIds = [];
+        }
+
+        if (this._displaySignalIds) {
+            for (const id of this._displaySignalIds) {
+                global.display.disconnect(id);
+            }
+            this._displaySignalIds = [];
         }
 
         if (this._settingsSignalIds && this._settings) {

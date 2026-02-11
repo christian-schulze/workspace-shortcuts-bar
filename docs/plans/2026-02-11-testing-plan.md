@@ -332,8 +332,10 @@ Run each scenario in both static and dynamic workspace modes.
 
 | # | Test | Steps | Expected |
 |---|------|-------|----------|
-| M-11 | Highlight style | Switch workspace | Active button has highlight background |
-| M-12 | Style follows switching | Switch workspaces rapidly | Highlight follows without delay or flicker |
+| M-11 | Active highlight | Switch workspace | Active button has brighter highlight background |
+| M-12 | Occupied highlight | Open windows on multiple workspaces | Non-active workspaces with windows have subtle highlight |
+| M-13 | Style follows switching | Switch workspaces rapidly | Highlights follow without delay or flicker |
+| M-14 | Three-tier hierarchy | Have active, occupied, and empty workspaces | Three visually distinct states visible |
 
 #### Click Interaction
 
