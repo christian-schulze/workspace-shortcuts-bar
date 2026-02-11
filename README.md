@@ -2,7 +2,7 @@
 
 A GNOME Shell extension that adds workspace buttons to the top bar and provides configurable keyboard shortcuts (`<Super>1` through `<Super>0`) for switching between up to 10 workspaces.
 
-Targets GNOME Shell 45, 46, and 47.
+Targets GNOME Shell 45–49.
 
 ## Features
 
@@ -23,23 +23,13 @@ Visit the [extension page](https://extensions.gnome.org/) and toggle it on.
 ### Manual
 
 ```bash
-git clone https://github.com/christian-schulze/workspace-shortcuts-bar.git \
-  ~/.local/share/gnome-shell/extensions/workspace-shortcuts-bar@christian-schulze.github.io
-
-cd ~/.local/share/gnome-shell/extensions/workspace-shortcuts-bar@christian-schulze.github.io
-glib-compile-schemas schemas/
+git clone https://github.com/christian-schulze/workspace-shortcuts-bar.git
+cd workspace-shortcuts-bar
+make install   # symlinks repo into ~/.local/share/gnome-shell/extensions/
+make enable
 ```
 
-Then restart GNOME Shell:
-
-- **Wayland:** Log out and back in
-- **X11:** `Alt+F2` then type `r`
-
-Enable the extension:
-
-```bash
-gnome-extensions enable workspace-shortcuts-bar@christian-schulze.github.io
-```
+On **Wayland** you may need to log out and back in for the extension to appear. On **X11** press `Alt+F2` and type `r` to restart the shell.
 
 ## Configuration
 
@@ -64,19 +54,26 @@ Default bindings are `<Super>1` through `<Super>9` and `<Super>0` for workspace 
 
 - GNOME Shell 45+
 - `glib-compile-schemas` (from `libglib2.0-dev-bin`)
-- Node.js (for ESLint)
+- Node.js (for ESLint and tests)
 
-### Lint
+### Makefile Targets
 
-```bash
-npx eslint extension.js prefs.js lib/
-```
+Run `make help` to see all available targets:
 
-### Schema Validation
-
-```bash
-glib-compile-schemas --strict schemas/
-```
+| Target | Description |
+|--------|-------------|
+| `make install` | Symlink repo into GNOME Shell extensions directory |
+| `make uninstall` | Remove the symlink |
+| `make enable` | Enable the extension |
+| `make disable` | Disable the extension |
+| `make restart` | Disable and re-enable the extension |
+| `make nested` | Launch a nested GNOME Shell session |
+| `make lint` | Run ESLint on source files |
+| `make test` | Run unit tests |
+| `make schemas` | Compile GSettings schemas |
+| `make validate-schemas` | Validate schemas (strict mode) |
+| `make pack` | Build extension ZIP for distribution |
+| `make check` | Run all checks (lint, schema validation, tests) |
 
 ### Testing in a Nested Session
 
@@ -92,43 +89,30 @@ sudo pacman -S mutter-devkit
 **Launch:**
 
 ```bash
-# GNOME 49+
-dbus-run-session gnome-shell --devkit --wayland
-
-# GNOME 45-48
-dbus-run-session gnome-shell --nested --wayland
+make nested
 ```
 
 A new window opens with a full GNOME desktop. Enable the extension inside it:
 
 ```bash
-gnome-extensions enable workspace-shortcuts-bar@christian-schulze.github.io
+make enable
 ```
 
 To pick up code changes, close the nested shell window (or `Ctrl+C` in the terminal) and relaunch. Extension logs appear directly in the terminal that launched the nested session.
 
-**Note:** On Wayland there is no way to restart just the main shell or an extension in-place. For quick iteration without the nested session, you can try a disable/enable cycle, though this may not pick up all changes (GJS caches imported modules):
-
-```bash
-gnome-extensions disable workspace-shortcuts-bar@christian-schulze.github.io && \
-gnome-extensions enable workspace-shortcuts-bar@christian-schulze.github.io
-```
+**Note:** On Wayland there is no way to restart just the main shell or an extension in-place. For quick iteration without the nested session, you can try `make restart`, though this may not pick up all changes (GJS caches imported modules).
 
 ### Building the ZIP
 
 ```bash
-glib-compile-schemas schemas/
-gnome-extensions pack \
-  --schema=schemas/org.gnome.shell.extensions.workspace-shortcuts-bar.gschema.xml \
-  --extra-source=stylesheet.css \
-  --extra-source=lib/ \
-  .
+make pack
 ```
 
 ## Project Structure
 
 ```
 workspace-shortcuts-bar/
+├── Makefile               # Development targets (make help)
 ├── metadata.json          # Extension metadata
 ├── extension.js           # Main extension (workspace bar + keybindings)
 ├── prefs.js               # Preferences UI (GTK4/libadwaita)
