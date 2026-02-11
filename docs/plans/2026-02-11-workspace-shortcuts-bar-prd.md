@@ -44,7 +44,13 @@ GNOME Shell's built-in workspace shortcuts only cover the first 4 workspaces and
 | US-4 | User | Customize which key combinations map to which workspace | I can adapt shortcuts to my workflow |
 | US-5 | User | Choose where the bar appears in the top panel | It fits my panel layout preferences |
 
-### 2.2 Preferences
+### 2.2 Context Menu
+
+| ID | As a... | I want to... | So that... |
+|----|---------|-------------|------------|
+| US-13 | User | Right-click the workspace bar to access a context menu | I can quickly reach settings without navigating GNOME's extension manager |
+
+### 2.3 Preferences
 
 | ID | As a... | I want to... | So that... |
 |----|---------|-------------|------------|
@@ -76,6 +82,7 @@ GNOME Shell's built-in workspace shortcuts only cover the first 4 workspaces and
 | FR-5 | Clicking a button activates that workspace. | P0 |
 | FR-6 | Bar position in the panel is user-configurable (left, center, right). | P1 |
 | FR-7 | Bar updates in real time when workspaces are added, removed, renamed, or reordered. | P0 |
+| FR-23 | Right-clicking the bar opens a context menu with a "Preferences" item that opens the extension's settings window. | P1 |
 
 ### 3.2 Keybindings
 
@@ -402,6 +409,8 @@ gnome-extensions enable workspace-shortcuts-bar@<uuid>
 | Bar position changes take effect | ✓ | ✓ |
 | Indicator style changes take effect | ✓ | ✓ |
 | Workspace names displayed when set | ✓ | ✓ |
+| Right-click bar opens context menu with Preferences | ✓ | ✓ |
+| Context menu Preferences item opens settings window | ✓ | ✓ |
 | No GObject/signal/widget leaks after disable cycle | ✓ | ✓ |
 | No GTK/Adw imports in extension.js | ✓ | ✓ |
 | No Clutter/Meta/St imports in prefs.js | ✓ | ✓ |
@@ -413,8 +422,10 @@ gnome-extensions enable workspace-shortcuts-bar@<uuid>
 3. Open prefs, change a shortcut, verify new shortcut works.
 4. Change bar position in prefs, verify bar moves.
 5. Toggle indicator style, verify visual change.
-6. Disable extension, verify bar removed and shortcuts restored.
-7. Re-enable, verify clean state.
+6. Right-click the bar, verify context menu appears with "Preferences" item.
+7. Click "Preferences" in the context menu, verify prefs window opens.
+8. Disable extension, verify bar removed and shortcuts restored.
+9. Re-enable, verify clean state.
 
 ### 8.3 Pre-Submission Review
 

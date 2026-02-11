@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+import Clutter from 'gi://Clutter';
 import St from 'gi://St';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import Gio from 'gi://Gio';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import {formatWorkspaceLabel} from './lib/workspaceLabels.js';
@@ -43,6 +45,12 @@ export default class WorkspaceShortcutsBar extends Extension {
         this._restoreBuiltinKeybindings();
         this._removeBarFromPanel();
 
+        if (this._menu) {
+            this._menu.destroy();
+            this._menu = null;
+        }
+        this._menuManager = null;
+
         if (this._bar) {
             this._bar.destroy();
             this._bar = null;
@@ -65,9 +73,35 @@ export default class WorkspaceShortcutsBar extends Extension {
     _buildBar() {
         this._bar = new St.BoxLayout({
             style_class: 'workspace-shortcuts-bar',
+            reactive: true,
         });
 
+        this._createContextMenu();
         this._populateBar();
+    }
+
+    _createContextMenu() {
+        this._menu = new PopupMenu.PopupMenu(this._bar, 0.5, St.Side.TOP);
+        Main.uiGroup.add_child(this._menu.actor);
+        this._menu.actor.hide();
+
+        this._menuManager = new PopupMenu.PopupMenuManager(this._bar);
+        this._menuManager.addMenu(this._menu);
+
+        const prefsItem = new PopupMenu.PopupMenuItem('Preferences');
+        prefsItem.connect('activate', () => {
+            this.openPreferences();
+        });
+        this._menu.addMenuItem(prefsItem);
+
+        this._contextMenuGesture = new Clutter.ClickGesture({
+            required_button: Clutter.BUTTON_SECONDARY,
+            recognize_on_press: true,
+        });
+        this._contextMenuGesture.connect('recognize', () => {
+            this._menu.toggle();
+        });
+        this._bar.add_action(this._contextMenuGesture);
     }
 
     _populateBar() {
