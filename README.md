@@ -80,12 +80,38 @@ glib-compile-schemas --strict schemas/
 
 ### Testing in a Nested Session
 
-```bash
-# GNOME 45-48
-dbus-run-session gnome-shell --nested --wayland
+A nested GNOME Shell session runs a complete shell instance inside a window on your desktop, allowing you to test extension changes without logging out.
 
+**Prerequisites (GNOME 49+):**
+
+```bash
+# Arch/EndeavourOS
+sudo pacman -S mutter-devkit
+```
+
+**Launch:**
+
+```bash
 # GNOME 49+
 dbus-run-session gnome-shell --devkit --wayland
+
+# GNOME 45-48
+dbus-run-session gnome-shell --nested --wayland
+```
+
+A new window opens with a full GNOME desktop. Enable the extension inside it:
+
+```bash
+gnome-extensions enable workspace-shortcuts-bar@christian-schulze.github.io
+```
+
+To pick up code changes, close the nested shell window (or `Ctrl+C` in the terminal) and relaunch. Extension logs appear directly in the terminal that launched the nested session.
+
+**Note:** On Wayland there is no way to restart just the main shell or an extension in-place. For quick iteration without the nested session, you can try a disable/enable cycle, though this may not pick up all changes (GJS caches imported modules):
+
+```bash
+gnome-extensions disable workspace-shortcuts-bar@christian-schulze.github.io && \
+gnome-extensions enable workspace-shortcuts-bar@christian-schulze.github.io
 ```
 
 ### Building the ZIP
