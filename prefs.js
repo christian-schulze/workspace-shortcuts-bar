@@ -10,8 +10,6 @@ import {isValidAccelerator} from './lib/shortcutKeys.js';
 
 const BAR_POSITIONS = ['left', 'center', 'right'];
 const BAR_POSITION_LABELS = ['Left', 'Center', 'Right'];
-const INDICATOR_STYLES = ['highlight', 'bar'];
-const INDICATOR_STYLE_LABELS = ['Highlight', 'Indicator Bar'];
 const MAX_WORKSPACES = 10;
 
 export default class WorkspaceShortcutsBarPrefs extends ExtensionPreferences {
@@ -57,25 +55,6 @@ export default class WorkspaceShortcutsBarPrefs extends ExtensionPreferences {
                 settings.set_string('bar-position', selected);
         });
         group.add(positionRow);
-
-        // Indicator Style
-        const styleRow = new Adw.ComboRow({
-            title: 'Active Indicator Style',
-            subtitle: 'How the active workspace is visually highlighted',
-            model: Gtk.StringList.new(INDICATOR_STYLE_LABELS),
-        });
-
-        const currentStyle = settings.get_string('indicator-style');
-        const styleIndex = INDICATOR_STYLES.indexOf(currentStyle);
-        if (styleIndex >= 0)
-            styleRow.selected = styleIndex;
-
-        styleRow.connect('notify::selected', () => {
-            const selected = INDICATOR_STYLES[styleRow.selected];
-            if (selected)
-                settings.set_string('indicator-style', selected);
-        });
-        group.add(styleRow);
 
         // Max Shortcuts (dynamic mode only)
         if (isDynamic) {

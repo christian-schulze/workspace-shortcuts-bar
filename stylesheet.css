@@ -17,12 +17,6 @@
     background-color: rgba(255, 255, 255, 0.15);
 }
 
-/* Active workspace: bar style (underline) */
-.workspace-button-active-bar {
-    border-bottom-width: 2px;
-    border-bottom-color: rgba(255, 255, 255, 0.8);
-}
-
 /* Empty workspace (no windows) */
 .workspace-button-empty {
     opacity: 0.5;

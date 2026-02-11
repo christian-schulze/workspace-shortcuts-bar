@@ -110,7 +110,6 @@ export default class WorkspaceShortcutsBar extends Extension {
         const workspaceManager = global.workspace_manager;
         const nWorkspaces = workspaceManager.get_n_workspaces();
         const activeIndex = workspaceManager.get_active_workspace_index();
-        const indicatorStyle = this._settings.get_string('indicator-style');
         const names = this._wmSettings.get_strv('workspace-names');
 
         for (let i = 0; i < nWorkspaces; i++) {
@@ -125,10 +124,7 @@ export default class WorkspaceShortcutsBar extends Extension {
             });
 
             if (i === activeIndex) {
-                const activeClass = indicatorStyle === 'bar'
-                    ? 'workspace-button-active-bar'
-                    : 'workspace-button-active-highlight';
-                button.add_style_class_name(activeClass);
+                button.add_style_class_name('workspace-button-active-highlight');
             }
 
             const isEmpty = workspace.list_windows()
@@ -151,19 +147,14 @@ export default class WorkspaceShortcutsBar extends Extension {
 
         const workspaceManager = global.workspace_manager;
         const activeIndex = workspaceManager.get_active_workspace_index();
-        const indicatorStyle = this._settings.get_string('indicator-style');
         const children = this._bar.get_children();
 
         for (let i = 0; i < children.length; i++) {
             const button = children[i];
             button.remove_style_class_name('workspace-button-active-highlight');
-            button.remove_style_class_name('workspace-button-active-bar');
 
             if (i === activeIndex) {
-                const activeClass = indicatorStyle === 'bar'
-                    ? 'workspace-button-active-bar'
-                    : 'workspace-button-active-highlight';
-                button.add_style_class_name(activeClass);
+                button.add_style_class_name('workspace-button-active-highlight');
             }
         }
     }
@@ -411,11 +402,6 @@ export default class WorkspaceShortcutsBar extends Extension {
             this._settings.connect('changed::bar-position', () => {
                 const position = this._settings.get_string('bar-position');
                 this._moveBarToPosition(position);
-            })
-        );
-        this._settingsSignalIds.push(
-            this._settings.connect('changed::indicator-style', () => {
-                this._updateActiveButton();
             })
         );
         this._settingsSignalIds.push(

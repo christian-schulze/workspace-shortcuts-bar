@@ -113,11 +113,6 @@
             <summary>Position of the workspace bar in the top panel</summary>
         </key>
 
-        <key name="indicator-style" type="s">
-            <default>'highlight'</default>
-            <summary>Visual style for the active workspace indicator</summary>
-        </key>
-
         <key name="move-follows-window" type="b">
             <default>true</default>
             <summary>Switch to workspace after moving a window to it</summary>

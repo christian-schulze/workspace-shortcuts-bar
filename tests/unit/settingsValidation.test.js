@@ -3,7 +3,6 @@
 import {
     clampMaxShortcuts,
     isValidBarPosition,
-    isValidIndicatorStyle,
 } from '../../lib/settingsValidation.js';
 
 describe('clampMaxShortcuts', function () {
@@ -58,20 +57,4 @@ describe('isValidBarPosition', function () {
     });
 });
 
-describe('isValidIndicatorStyle', function () {
-    it('accepts highlight', function () {
-        expect(isValidIndicatorStyle('highlight')).toBe(true);
-    });
 
-    it('accepts bar', function () {
-        expect(isValidIndicatorStyle('bar')).toBe(true);
-    });
-
-    it('rejects neon', function () {
-        expect(isValidIndicatorStyle('neon')).toBe(false);
-    });
-
-    it('rejects empty string', function () {
-        expect(isValidIndicatorStyle('')).toBe(false);
-    });
-});
