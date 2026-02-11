@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="workspace-shortcuts-bar">
+    <schema id="org.gnome.shell.extensions.workspace-shortcuts-bar"
+            path="/org/gnome/shell/extensions/workspace-shortcuts-bar/">
+
+        <key name="switch-to-workspace-1" type="s">
+            <default>'&lt;Super&gt;1'</default>
+            <summary>Switch to workspace 1</summary>
+        </key>
+
+        <key name="switch-to-workspace-2" type="s">
+            <default>'&lt;Super&gt;2'</default>
+            <summary>Switch to workspace 2</summary>
+        </key>
+
+        <key name="switch-to-workspace-3" type="s">
+            <default>'&lt;Super&gt;3'</default>
+            <summary>Switch to workspace 3</summary>
+        </key>
+
+        <key name="switch-to-workspace-4" type="s">
+            <default>'&lt;Super&gt;4'</default>
+            <summary>Switch to workspace 4</summary>
+        </key>
+
+        <key name="switch-to-workspace-5" type="s">
+            <default>'&lt;Super&gt;5'</default>
+            <summary>Switch to workspace 5</summary>
+        </key>
+
+        <key name="switch-to-workspace-6" type="s">
+            <default>'&lt;Super&gt;6'</default>
+            <summary>Switch to workspace 6</summary>
+        </key>
+
+        <key name="switch-to-workspace-7" type="s">
+            <default>'&lt;Super&gt;7'</default>
+            <summary>Switch to workspace 7</summary>
+        </key>
+
+        <key name="switch-to-workspace-8" type="s">
+            <default>'&lt;Super&gt;8'</default>
+            <summary>Switch to workspace 8</summary>
+        </key>
+
+        <key name="switch-to-workspace-9" type="s">
+            <default>'&lt;Super&gt;9'</default>
+            <summary>Switch to workspace 9</summary>
+        </key>
+
+        <key name="switch-to-workspace-10" type="s">
+            <default>'&lt;Super&gt;0'</default>
+            <summary>Switch to workspace 10</summary>
+        </key>
+
+        <key name="max-shortcuts" type="i">
+            <default>10</default>
+            <summary>Maximum number of workspace shortcuts (1-10)</summary>
+        </key>
+
+        <key name="bar-position" type="s">
+            <default>'left'</default>
+            <summary>Position of the workspace bar in the top panel</summary>
+        </key>
+
+        <key name="indicator-style" type="s">
+            <default>'highlight'</default>
+            <summary>Visual style for the active workspace indicator</summary>
+        </key>
+
+    </schema>
+</schemalist>
