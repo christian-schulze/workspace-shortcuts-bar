@@ -21,19 +21,25 @@ export default class WorkspaceShortcutsBar extends Extension {
         this._settingsSignalIds = [];
         this._wmSettingsSignalIds = [];
         this._registeredKeybindings = [];
+        this._registeredMoveKeybindings = [];
         this._savedBuiltinBindings = {};
         this._savedAppBindings = {};
+        this._savedBuiltinMoveBindings = {};
 
         this._buildBar();
         this._insertBarIntoPanel();
         this._disableBuiltinKeybindings();
+        this._disableBuiltinMoveKeybindings();
         this._registerKeybindings();
+        this._registerMoveKeybindings();
         this._connectSignals();
     }
 
     disable() {
         this._disconnectSignals();
+        this._removeMoveKeybindings();
         this._removeKeybindings();
+        this._restoreBuiltinMoveKeybindings();
         this._restoreBuiltinKeybindings();
         this._removeBarFromPanel();
 
@@ -50,8 +56,10 @@ export default class WorkspaceShortcutsBar extends Extension {
         this._settingsSignalIds = null;
         this._wmSettingsSignalIds = null;
         this._registeredKeybindings = null;
+        this._registeredMoveKeybindings = null;
         this._savedBuiltinBindings = null;
         this._savedAppBindings = null;
+        this._savedBuiltinMoveBindings = null;
     }
 
     _buildBar() {
@@ -227,6 +235,40 @@ export default class WorkspaceShortcutsBar extends Extension {
         }
     }
 
+    /**
+     * Save and disable GNOME's built-in move-to-workspace-N keybindings
+     * so our extension's move shortcuts take effect without conflict.
+     */
+    _disableBuiltinMoveKeybindings() {
+        for (let i = 1; i <= 10; i++) {
+            const builtinKey = `move-to-workspace-${i}`;
+            try {
+                const original = this._wmKeybindingSettings.get_strv(builtinKey);
+                this._savedBuiltinMoveBindings[builtinKey] = original;
+                this._wmKeybindingSettings.set_strv(builtinKey, []);
+            } catch (_e) {
+                // Key may not exist for higher workspace numbers; ignore
+            }
+        }
+    }
+
+    /**
+     * Restore GNOME's built-in move-to-workspace-N keybindings
+     * to their original values when the extension is disabled.
+     */
+    _restoreBuiltinMoveKeybindings() {
+        if (this._wmKeybindingSettings && this._savedBuiltinMoveBindings) {
+            for (const [key, value] of Object.entries(this._savedBuiltinMoveBindings)) {
+                try {
+                    this._wmKeybindingSettings.set_strv(key, value);
+                } catch (_e) {
+                    // Best effort restore
+                }
+            }
+            this._savedBuiltinMoveBindings = {};
+        }
+    }
+
     _registerKeybindings() {
         this._removeKeybindings();
 
@@ -264,6 +306,58 @@ export default class WorkspaceShortcutsBar extends Extension {
         this._registeredKeybindings = [];
     }
 
+    _registerMoveKeybindings() {
+        this._removeMoveKeybindings();
+
+        const maxShortcuts = clampMaxShortcuts(this._settings.get_int('max-shortcuts'));
+        const workspaceManager = global.workspace_manager;
+        const followWindow = this._settings.get_boolean('move-follows-window');
+
+        for (let i = 1; i <= maxShortcuts; i++) {
+            const keybindingName = `wsb-move-to-workspace-${i}`;
+
+            Main.wm.addKeybinding(
+                keybindingName,
+                this._settings,
+                Meta.KeyBindingFlags.NONE,
+                Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
+                () => {
+                    const window = global.display.get_focus_window();
+                    if (!window) {
+                        Main.notify(
+                            'Workspace Shortcuts Bar',
+                            'No window to move'
+                        );
+                        return;
+                    }
+
+                    const index = i - 1;
+                    if (!isWorkspaceIndexInRange(index, workspaceManager.get_n_workspaces()))
+                        return;
+
+                    window.change_workspace_by_index(index, false);
+
+                    if (followWindow) {
+                        workspaceManager.get_workspace_by_index(index)
+                            .activate(global.get_current_time());
+                    }
+                }
+            );
+
+            this._registeredMoveKeybindings.push(keybindingName);
+        }
+    }
+
+    _removeMoveKeybindings() {
+        if (!this._registeredMoveKeybindings)
+            return;
+
+        for (const name of this._registeredMoveKeybindings) {
+            Main.wm.removeKeybinding(name);
+        }
+        this._registeredMoveKeybindings = [];
+    }
+
     _connectSignals() {
         const workspaceManager = global.workspace_manager;
 
@@ -293,6 +387,7 @@ export default class WorkspaceShortcutsBar extends Extension {
         this._settingsSignalIds.push(
             this._settings.connect('changed::max-shortcuts', () => {
                 this._registerKeybindings();
+                this._registerMoveKeybindings();
             })
         );
 
@@ -303,7 +398,18 @@ export default class WorkspaceShortcutsBar extends Extension {
                     this._registerKeybindings();
                 })
             );
+            this._settingsSignalIds.push(
+                this._settings.connect(`changed::wsb-move-to-workspace-${i}`, () => {
+                    this._registerMoveKeybindings();
+                })
+            );
         }
+
+        this._settingsSignalIds.push(
+            this._settings.connect('changed::move-follows-window', () => {
+                this._registerMoveKeybindings();
+            })
+        );
 
         // WM settings signals (workspace names)
         this._wmSettingsSignalIds.push(

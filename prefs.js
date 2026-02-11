@@ -21,24 +21,149 @@ export default class WorkspaceShortcutsBarPrefs extends ExtensionPreferences {
         const mutterSettings = new Gio.Settings({schema_id: 'org.gnome.mutter'});
         const isDynamic = mutterSettings.get_boolean('dynamic-workspaces');
 
-        const page = new Adw.PreferencesPage();
-        window.add(page);
-
-        this._addShortcutsGroup(page, settings, isDynamic);
-        this._addAppearanceGroup(page, settings, isDynamic);
+        this._addAppearancePage(window, settings, isDynamic);
+        this._addSwitchShortcutsPage(window, settings, isDynamic);
+        this._addMoveShortcutsPage(window, settings, isDynamic);
+        this._addBehaviorPage(window, settings);
     }
 
-    _addShortcutsGroup(page, settings, isDynamic) {
+    _addAppearancePage(window, settings, isDynamic) {
+        const page = new Adw.PreferencesPage({
+            title: 'Appearance',
+            icon_name: 'preferences-desktop-appearance-symbolic',
+        });
+        window.add(page);
+
         const group = new Adw.PreferencesGroup({
-            title: 'Keyboard Shortcuts',
+            title: 'Appearance',
+        });
+        page.add(group);
+
+        // Bar Position
+        const positionRow = new Adw.ComboRow({
+            title: 'Bar Position',
+            subtitle: 'Where the workspace bar appears in the top panel',
+            model: Gtk.StringList.new(BAR_POSITION_LABELS),
+        });
+
+        const currentPosition = settings.get_string('bar-position');
+        const positionIndex = BAR_POSITIONS.indexOf(currentPosition);
+        if (positionIndex >= 0)
+            positionRow.selected = positionIndex;
+
+        positionRow.connect('notify::selected', () => {
+            const selected = BAR_POSITIONS[positionRow.selected];
+            if (selected)
+                settings.set_string('bar-position', selected);
+        });
+        group.add(positionRow);
+
+        // Indicator Style
+        const styleRow = new Adw.ComboRow({
+            title: 'Active Indicator Style',
+            subtitle: 'How the active workspace is visually highlighted',
+            model: Gtk.StringList.new(INDICATOR_STYLE_LABELS),
+        });
+
+        const currentStyle = settings.get_string('indicator-style');
+        const styleIndex = INDICATOR_STYLES.indexOf(currentStyle);
+        if (styleIndex >= 0)
+            styleRow.selected = styleIndex;
+
+        styleRow.connect('notify::selected', () => {
+            const selected = INDICATOR_STYLES[styleRow.selected];
+            if (selected)
+                settings.set_string('indicator-style', selected);
+        });
+        group.add(styleRow);
+
+        // Max Shortcuts (dynamic mode only)
+        if (isDynamic) {
+            const maxAdjustment = new Gtk.Adjustment({
+                lower: 1,
+                upper: 10,
+                step_increment: 1,
+                value: settings.get_int('max-shortcuts'),
+            });
+
+            const maxRow = new Adw.SpinRow({
+                title: 'Maximum Shortcuts',
+                subtitle: 'Number of workspace shortcuts to register',
+                adjustment: maxAdjustment,
+            });
+
+            settings.bind(
+                'max-shortcuts',
+                maxAdjustment,
+                'value',
+                Gio.SettingsBindFlags.DEFAULT
+            );
+
+            group.add(maxRow);
+        }
+    }
+
+    _addSwitchShortcutsPage(window, settings, isDynamic) {
+        const page = new Adw.PreferencesPage({
+            title: 'Switch Shortcuts',
+            icon_name: 'input-keyboard-symbolic',
+        });
+        window.add(page);
+
+        const group = new Adw.PreferencesGroup({
+            title: 'Switch to Workspace',
         });
         page.add(group);
 
         const rowCount = this._getShortcutRowCount(settings, isDynamic);
-
         for (let i = 1; i <= rowCount; i++) {
-            this._addShortcutRow(group, settings, i);
+            this._addShortcutRow(group, settings, i, 'wsb-switch-to-workspace');
         }
+    }
+
+    _addMoveShortcutsPage(window, settings, isDynamic) {
+        const page = new Adw.PreferencesPage({
+            title: 'Move Shortcuts',
+            icon_name: 'view-sort-ascending-symbolic',
+        });
+        window.add(page);
+
+        const group = new Adw.PreferencesGroup({
+            title: 'Move Window to Workspace',
+        });
+        page.add(group);
+
+        const rowCount = this._getShortcutRowCount(settings, isDynamic);
+        for (let i = 1; i <= rowCount; i++) {
+            this._addShortcutRow(group, settings, i, 'wsb-move-to-workspace');
+        }
+    }
+
+    _addBehaviorPage(window, settings) {
+        const page = new Adw.PreferencesPage({
+            title: 'Behavior',
+            icon_name: 'preferences-other-symbolic',
+        });
+        window.add(page);
+
+        const group = new Adw.PreferencesGroup({
+            title: 'Window Movement',
+        });
+        page.add(group);
+
+        const followRow = new Adw.SwitchRow({
+            title: 'Follow Window',
+            subtitle: 'Switch to the target workspace after moving a window',
+        });
+
+        settings.bind(
+            'move-follows-window',
+            followRow,
+            'active',
+            Gio.SettingsBindFlags.DEFAULT
+        );
+
+        group.add(followRow);
     }
 
     _getShortcutRowCount(settings, isDynamic) {
@@ -51,8 +176,8 @@ export default class WorkspaceShortcutsBarPrefs extends ExtensionPreferences {
         return Math.min(numWorkspaces, MAX_WORKSPACES);
     }
 
-    _addShortcutRow(group, settings, workspaceNum) {
-        const keyName = `wsb-switch-to-workspace-${workspaceNum}`;
+    _addShortcutRow(group, settings, workspaceNum, keyPrefix) {
+        const keyName = `${keyPrefix}-${workspaceNum}`;
         const bindings = settings.get_strv(keyName);
         const current = bindings.length > 0 ? bindings[0] : '';
 
@@ -190,76 +315,6 @@ export default class WorkspaceShortcutsBarPrefs extends ExtensionPreferences {
         dialog.add_controller(escController);
 
         dialog.present();
-    }
-
-    _addAppearanceGroup(page, settings, isDynamic) {
-        const group = new Adw.PreferencesGroup({
-            title: 'Appearance',
-        });
-        page.add(group);
-
-        // Bar Position
-        const positionRow = new Adw.ComboRow({
-            title: 'Bar Position',
-            subtitle: 'Where the workspace bar appears in the top panel',
-            model: Gtk.StringList.new(BAR_POSITION_LABELS),
-        });
-
-        const currentPosition = settings.get_string('bar-position');
-        const positionIndex = BAR_POSITIONS.indexOf(currentPosition);
-        if (positionIndex >= 0)
-            positionRow.selected = positionIndex;
-
-        positionRow.connect('notify::selected', () => {
-            const selected = BAR_POSITIONS[positionRow.selected];
-            if (selected)
-                settings.set_string('bar-position', selected);
-        });
-        group.add(positionRow);
-
-        // Indicator Style
-        const styleRow = new Adw.ComboRow({
-            title: 'Active Indicator Style',
-            subtitle: 'How the active workspace is visually highlighted',
-            model: Gtk.StringList.new(INDICATOR_STYLE_LABELS),
-        });
-
-        const currentStyle = settings.get_string('indicator-style');
-        const styleIndex = INDICATOR_STYLES.indexOf(currentStyle);
-        if (styleIndex >= 0)
-            styleRow.selected = styleIndex;
-
-        styleRow.connect('notify::selected', () => {
-            const selected = INDICATOR_STYLES[styleRow.selected];
-            if (selected)
-                settings.set_string('indicator-style', selected);
-        });
-        group.add(styleRow);
-
-        // Max Shortcuts (dynamic mode only)
-        if (isDynamic) {
-            const maxAdjustment = new Gtk.Adjustment({
-                lower: 1,
-                upper: 10,
-                step_increment: 1,
-                value: settings.get_int('max-shortcuts'),
-            });
-
-            const maxRow = new Adw.SpinRow({
-                title: 'Maximum Shortcuts',
-                subtitle: 'Number of workspace shortcuts to register',
-                adjustment: maxAdjustment,
-            });
-
-            settings.bind(
-                'max-shortcuts',
-                maxAdjustment,
-                'value',
-                Gio.SettingsBindFlags.DEFAULT
-            );
-
-            group.add(maxRow);
-        }
     }
 }
 
