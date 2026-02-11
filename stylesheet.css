@@ -1,0 +1,28 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+/* Container for all workspace buttons */
+.workspace-shortcuts-bar {
+    spacing: 4px;
+}
+
+/* Base style for all workspace buttons */
+.workspace-button {
+    padding: 0 8px;
+    border-radius: 4px;
+    transition-duration: 150ms;
+}
+
+/* Active workspace: highlight style (background) */
+.workspace-button-active-highlight {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Active workspace: bar style (underline) */
+.workspace-button-active-bar {
+    border-bottom: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+/* Empty workspace (no windows) */
+.workspace-button-empty {
+    opacity: 0.5;
+}
