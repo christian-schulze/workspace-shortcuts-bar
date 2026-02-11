@@ -1,0 +1,77 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Lint extension.js and lib/
+        run: npx eslint extension.js lib/
+
+      - name: Lint prefs.js
+        run: npx eslint prefs.js
+
+  forbidden-imports:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check extension.js for forbidden imports
+        run: |
+          if grep -qE "from\s+'gi://Gtk|from\s+'gi://Adw|from\s+'gi://Gdk" extension.js; then
+            echo "ERROR: extension.js contains forbidden GTK/Adw/Gdk imports"
+            exit 1
+          fi
+
+      - name: Check prefs.js for forbidden imports
+        run: |
+          if grep -qE "from\s+'gi://Clutter|from\s+'gi://Meta|from\s+'gi://St|from\s+'gi://Shell" prefs.js; then
+            echo "ERROR: prefs.js contains forbidden Shell imports"
+            exit 1
+          fi
+
+  schema:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install glib tools
+        run: sudo apt-get update && sudo apt-get install -y libglib2.0-dev-bin
+
+      - name: Compile schemas (strict)
+        run: glib-compile-schemas --strict schemas/
+
+  pack:
+    runs-on: ubuntu-latest
+    needs: [lint, forbidden-imports, schema]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gnome-shell-common libglib2.0-dev-bin
+
+      - name: Compile schemas
+        run: glib-compile-schemas schemas/
+
+      - name: Pack extension
+        run: |
+          gnome-extensions pack \
+            --schema=schemas/org.gnome.shell.extensions.workspace-shortcuts-bar.gschema.xml \
+            --extra-source=stylesheet.css \
+            --extra-source=lib/ \
+            .
+
+      - name: Upload ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-zip
+          path: "*.shell-extension.zip"
