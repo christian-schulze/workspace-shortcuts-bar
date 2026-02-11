@@ -16,11 +16,13 @@ export default class WorkspaceShortcutsBar extends Extension {
         this._settings = this.getSettings();
         this._wmSettings = new Gio.Settings({schema_id: 'org.gnome.desktop.wm.preferences'});
         this._wmKeybindingSettings = new Gio.Settings({schema_id: 'org.gnome.desktop.wm.keybindings'});
+        this._shellKeybindingSettings = new Gio.Settings({schema_id: 'org.gnome.shell.keybindings'});
         this._signalIds = [];
         this._settingsSignalIds = [];
         this._wmSettingsSignalIds = [];
         this._registeredKeybindings = [];
         this._savedBuiltinBindings = {};
+        this._savedAppBindings = {};
 
         this._buildBar();
         this._insertBarIntoPanel();
@@ -43,11 +45,13 @@ export default class WorkspaceShortcutsBar extends Extension {
         this._settings = null;
         this._wmSettings = null;
         this._wmKeybindingSettings = null;
+        this._shellKeybindingSettings = null;
         this._signalIds = null;
         this._settingsSignalIds = null;
         this._wmSettingsSignalIds = null;
         this._registeredKeybindings = null;
         this._savedBuiltinBindings = null;
+        this._savedAppBindings = null;
     }
 
     _buildBar() {
@@ -165,9 +169,11 @@ export default class WorkspaceShortcutsBar extends Extension {
 
     /**
      * Save and disable GNOME's built-in switch-to-workspace-N keybindings
-     * so our extension can register its own without name collision.
+     * and switch-to-application-N keybindings so our extension's shortcuts
+     * take effect without conflict.
      */
     _disableBuiltinKeybindings() {
+        // Disable workspace-switching keybindings (org.gnome.desktop.wm.keybindings)
         for (let i = 1; i <= 10; i++) {
             const builtinKey = `switch-to-workspace-${i}`;
             try {
@@ -178,24 +184,47 @@ export default class WorkspaceShortcutsBar extends Extension {
                 // Key may not exist for higher workspace numbers; ignore
             }
         }
+
+        // Disable app-launching keybindings (org.gnome.shell.keybindings)
+        for (let i = 1; i <= 9; i++) {
+            const appKey = `switch-to-application-${i}`;
+            try {
+                const original = this._shellKeybindingSettings.get_strv(appKey);
+                this._savedAppBindings[appKey] = original;
+                this._shellKeybindingSettings.set_strv(appKey, []);
+            } catch (_e) {
+                // Best effort
+            }
+        }
     }
 
     /**
-     * Restore GNOME's built-in switch-to-workspace-N keybindings to their
-     * original values when the extension is disabled.
+     * Restore GNOME's built-in switch-to-workspace-N and
+     * switch-to-application-N keybindings to their original values
+     * when the extension is disabled.
      */
     _restoreBuiltinKeybindings() {
-        if (!this._wmKeybindingSettings || !this._savedBuiltinBindings)
-            return;
-
-        for (const [key, value] of Object.entries(this._savedBuiltinBindings)) {
-            try {
-                this._wmKeybindingSettings.set_strv(key, value);
-            } catch (_e) {
-                // Best effort restore
+        if (this._wmKeybindingSettings && this._savedBuiltinBindings) {
+            for (const [key, value] of Object.entries(this._savedBuiltinBindings)) {
+                try {
+                    this._wmKeybindingSettings.set_strv(key, value);
+                } catch (_e) {
+                    // Best effort restore
+                }
             }
+            this._savedBuiltinBindings = {};
         }
-        this._savedBuiltinBindings = {};
+
+        if (this._shellKeybindingSettings && this._savedAppBindings) {
+            for (const [key, value] of Object.entries(this._savedAppBindings)) {
+                try {
+                    this._shellKeybindingSettings.set_strv(key, value);
+                } catch (_e) {
+                    // Best effort restore
+                }
+            }
+            this._savedAppBindings = {};
+        }
     }
 
     _registerKeybindings() {
