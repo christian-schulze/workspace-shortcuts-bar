@@ -15,13 +15,16 @@ export default class WorkspaceShortcutsBar extends Extension {
     enable() {
         this._settings = this.getSettings();
         this._wmSettings = new Gio.Settings({schema_id: 'org.gnome.desktop.wm.preferences'});
+        this._wmKeybindingSettings = new Gio.Settings({schema_id: 'org.gnome.desktop.wm.keybindings'});
         this._signalIds = [];
         this._settingsSignalIds = [];
         this._wmSettingsSignalIds = [];
         this._registeredKeybindings = [];
+        this._savedBuiltinBindings = {};
 
         this._buildBar();
         this._insertBarIntoPanel();
+        this._disableBuiltinKeybindings();
         this._registerKeybindings();
         this._connectSignals();
     }
@@ -29,6 +32,7 @@ export default class WorkspaceShortcutsBar extends Extension {
     disable() {
         this._disconnectSignals();
         this._removeKeybindings();
+        this._restoreBuiltinKeybindings();
         this._removeBarFromPanel();
 
         if (this._bar) {
@@ -38,10 +42,12 @@ export default class WorkspaceShortcutsBar extends Extension {
 
         this._settings = null;
         this._wmSettings = null;
+        this._wmKeybindingSettings = null;
         this._signalIds = null;
         this._settingsSignalIds = null;
         this._wmSettingsSignalIds = null;
         this._registeredKeybindings = null;
+        this._savedBuiltinBindings = null;
     }
 
     _buildBar() {
@@ -157,6 +163,41 @@ export default class WorkspaceShortcutsBar extends Extension {
         this._currentPosition = newPosition;
     }
 
+    /**
+     * Save and disable GNOME's built-in switch-to-workspace-N keybindings
+     * so our extension can register its own without name collision.
+     */
+    _disableBuiltinKeybindings() {
+        for (let i = 1; i <= 10; i++) {
+            const builtinKey = `switch-to-workspace-${i}`;
+            try {
+                const original = this._wmKeybindingSettings.get_strv(builtinKey);
+                this._savedBuiltinBindings[builtinKey] = original;
+                this._wmKeybindingSettings.set_strv(builtinKey, []);
+            } catch (_e) {
+                // Key may not exist for higher workspace numbers; ignore
+            }
+        }
+    }
+
+    /**
+     * Restore GNOME's built-in switch-to-workspace-N keybindings to their
+     * original values when the extension is disabled.
+     */
+    _restoreBuiltinKeybindings() {
+        if (!this._wmKeybindingSettings || !this._savedBuiltinBindings)
+            return;
+
+        for (const [key, value] of Object.entries(this._savedBuiltinBindings)) {
+            try {
+                this._wmKeybindingSettings.set_strv(key, value);
+            } catch (_e) {
+                // Best effort restore
+            }
+        }
+        this._savedBuiltinBindings = {};
+    }
+
     _registerKeybindings() {
         this._removeKeybindings();
 
@@ -164,7 +205,7 @@ export default class WorkspaceShortcutsBar extends Extension {
         const workspaceManager = global.workspace_manager;
 
         for (let i = 1; i <= maxShortcuts; i++) {
-            const keybindingName = `switch-to-workspace-${i}`;
+            const keybindingName = `wsb-switch-to-workspace-${i}`;
 
             Main.wm.addKeybinding(
                 keybindingName,
@@ -229,7 +270,7 @@ export default class WorkspaceShortcutsBar extends Extension {
         // Per-shortcut settings signals
         for (let i = 1; i <= 10; i++) {
             this._settingsSignalIds.push(
-                this._settings.connect(`changed::switch-to-workspace-${i}`, () => {
+                this._settings.connect(`changed::wsb-switch-to-workspace-${i}`, () => {
                     this._registerKeybindings();
                 })
             );

@@ -52,7 +52,7 @@ export default class WorkspaceShortcutsBarPrefs extends ExtensionPreferences {
     }
 
     _addShortcutRow(group, settings, workspaceNum) {
-        const keyName = `switch-to-workspace-${workspaceNum}`;
+        const keyName = `wsb-switch-to-workspace-${workspaceNum}`;
         const bindings = settings.get_strv(keyName);
         const current = bindings.length > 0 ? bindings[0] : '';
 
