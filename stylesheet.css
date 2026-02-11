@@ -19,7 +19,8 @@
 
 /* Active workspace: bar style (underline) */
 .workspace-button-active-bar {
-    border-bottom: 2px solid rgba(255, 255, 255, 0.8);
+    border-bottom-width: 2px;
+    border-bottom-color: rgba(255, 255, 255, 0.8);
 }
 
 /* Empty workspace (no windows) */
