@@ -40,7 +40,7 @@ Unit tests for pure logic extracted from the extension, run with `jasmine-gjs` u
 |--------|--------------------|
 | Shortcut key handling | Accelerator string parsing/validation, default keybinding generation |
 | Workspace label formatting | Name-with-fallback logic (workspace name → numeric index) |
-| Settings validation | `max-shortcuts` bounds clamping, `bar-position` enum validation, `indicator-style` enum validation |
+| Settings validation | `max-shortcuts` bounds clamping, `bar-position` enum validation |
 | Index safety | Out-of-range workspace index guard logic |
 
 **What is NOT testable in unit tests:**
@@ -209,7 +209,7 @@ describe('formatWorkspaceLabel', () => {
 #### `tests/unit/settingsValidation.test.js`
 
 ```js
-import { clampMaxShortcuts, isValidBarPosition, isValidIndicatorStyle } from '../../lib/settingsValidation.js';
+import { clampMaxShortcuts, isValidBarPosition } from '../../lib/settingsValidation.js';
 
 describe('settingsValidation', () => {
     describe('clampMaxShortcuts', () => {
@@ -237,17 +237,6 @@ describe('settingsValidation', () => {
         it('rejects invalid positions', () => {
             expect(isValidBarPosition('top')).toBe(false);
             expect(isValidBarPosition('')).toBe(false);
-        });
-    });
-
-    describe('isValidIndicatorStyle', () => {
-        it('accepts valid styles', () => {
-            expect(isValidIndicatorStyle('highlight')).toBe(true);
-            expect(isValidIndicatorStyle('bar')).toBe(true);
-        });
-
-        it('rejects invalid styles', () => {
-            expect(isValidIndicatorStyle('neon')).toBe(false);
         });
     });
 });
@@ -343,10 +332,8 @@ Run each scenario in both static and dynamic workspace modes.
 
 | # | Test | Steps | Expected |
 |---|------|-------|----------|
-| M-11 | Highlight style | Set indicator-style to highlight, switch workspace | Active button has highlight background |
-| M-12 | Bar style | Set indicator-style to bar, switch workspace | Active button has underline indicator |
-| M-13 | Style follows switching | Switch workspaces rapidly | Indicator follows without delay or flicker |
-| M-14 | Style change live | Change indicator style in prefs while extension is active | Visual style updates without restart |
+| M-11 | Highlight style | Switch workspace | Active button has highlight background |
+| M-12 | Style follows switching | Switch workspaces rapidly | Highlight follows without delay or flicker |
 
 #### Click Interaction
 
@@ -376,7 +363,6 @@ Run each scenario in both static and dynamic workspace modes.
 | M-26 | Cancel shortcut | Click "Change...", press Escape | Original shortcut preserved |
 | M-27 | Max shortcuts (dynamic) | Change max-shortcuts spin button | Number of visible shortcut rows changes |
 | M-28 | Position selector | Change bar position dropdown | Bar moves in panel |
-| M-29 | Style selector | Change indicator style dropdown | Active indicator style changes |
 
 #### Lifecycle & Stability
 

@@ -57,8 +57,6 @@ GNOME Shell's built-in workspace shortcuts only cover the first 4 workspaces and
 | US-6 | User | Open a capture dialog to set a new shortcut | I don't have to type accelerator strings manually |
 | US-7 | User | See the current shortcut for each workspace at a glance | I can verify my configuration |
 | US-8 | Dynamic-workspace user | Set the max number of shortcut slots | I control how many bindings are registered |
-| US-9 | User | Choose between highlight and indicator-bar styles | The active workspace indicator matches my taste |
-
 ### 2.3 Edge Cases
 
 | ID | As a... | I want to... | So that... |
@@ -107,7 +105,7 @@ GNOME Shell's built-in workspace shortcuts only cover the first 4 workspaces and
 | FR-19 | Detect dynamic vs static workspace mode and adapt row count accordingly. | P1 |
 | FR-20 | In dynamic mode, show a `max-shortcuts` spin button (range 1–20). | P1 |
 | FR-21 | Bar position selector (left / center / right). | P1 |
-| FR-22 | Active workspace indicator style selector (highlight / indicator bar). | P1 |
+
 
 ---
 
@@ -165,7 +163,6 @@ workspace-shortcuts-bar/
     <!-- Configuration -->
     <key name="max-shortcuts" type="i"><default>10</default></key>
     <key name="bar-position" type="s"><default>'left'</default></key>
-    <key name="indicator-style" type="s"><default>'highlight'</default></key>
 
   </schema>
 </schemalist>
@@ -183,7 +180,7 @@ workspace-shortcuts-bar/
 
 3. **Cleanup** — On `disable()`, remove all keybindings via `Main.wm.removeKeybinding()`, destroy the bar widget, disconnect all signals.
 
-4. **Settings Monitoring** — Connect to GSettings `changed` signals to react to preference changes at runtime (bar position, indicator style, max-shortcuts, individual shortcut changes).
+4. **Settings Monitoring** — Connect to GSettings `changed` signals to react to preference changes at runtime (bar position, max-shortcuts, individual shortcut changes).
 
 #### `prefs.js` — Preferences Window
 
@@ -195,7 +192,7 @@ workspace-shortcuts-bar/
 
 3. **Key Capture Dialog** — Modal `Adw.Window` with a `Gtk.EventControllerKey` that captures the next keypress, previews the accelerator, and writes to GSettings on confirm.
 
-4. **Configuration Controls** — Bar position selector, indicator style selector, max-shortcuts spin button (dynamic mode only).
+4. **Configuration Controls** — Bar position selector, max-shortcuts spin button (dynamic mode only).
 
 ### 4.5 Signal Flow
 
@@ -258,27 +255,21 @@ function switchToWorkspace(index):
 | State | Visual Treatment |
 |-------|-----------------|
 | Normal | Default panel button style, standard text opacity |
-| Active (current workspace) | Depends on `indicator-style` setting (see below) |
+| Active (current workspace) | Semi-transparent highlight background (CSS class `.workspace-button-active-highlight`) |
 | Empty (no windows) | Reduced opacity (e.g., `opacity: 0.5`) |
 | Hover | Standard GNOME panel button hover effect |
 
-### 6.2 Indicator Styles
+### 6.2 Active Workspace Style
 
-**Highlight style** (default):
-- Active button gets a distinct background color (e.g., semi-transparent white or accent color).
+The active workspace button uses a semi-transparent white (or accent color) highlight background.
 - CSS class: `.workspace-button-active-highlight`
-
-**Indicator bar style:**
-- Active button gets a 2–3px colored underline (bottom border or pseudo-element).
-- CSS class: `.workspace-button-active-bar`
 
 ### 6.3 CSS Classes
 
 ```css
 .workspace-shortcuts-bar { }              /* Container */
 .workspace-button { }                     /* All buttons */
-.workspace-button-active-highlight { }    /* Active: highlight mode */
-.workspace-button-active-bar { }          /* Active: bar mode */
+.workspace-button-active-highlight { }    /* Active workspace (highlight) */
 .workspace-button-empty { }              /* Empty workspace (dimmed) */
 ```
 
@@ -407,7 +398,6 @@ gnome-extensions enable workspace-shortcuts-bar@<uuid>
 | Out-of-range shortcut is no-op | ✓ | ✓ |
 | Enable/disable cycle is clean | ✓ | ✓ |
 | Bar position changes take effect | ✓ | ✓ |
-| Indicator style changes take effect | ✓ | ✓ |
 | Workspace names displayed when set | ✓ | ✓ |
 | Right-click bar opens context menu with Preferences | ✓ | ✓ |
 | Context menu Preferences item opens settings window | ✓ | ✓ |
@@ -421,11 +411,10 @@ gnome-extensions enable workspace-shortcuts-bar@<uuid>
 2. Press `<Super>1` through `<Super>4` — verify workspace switches.
 3. Open prefs, change a shortcut, verify new shortcut works.
 4. Change bar position in prefs, verify bar moves.
-5. Toggle indicator style, verify visual change.
-6. Right-click the bar, verify context menu appears with "Preferences" item.
-7. Click "Preferences" in the context menu, verify prefs window opens.
-8. Disable extension, verify bar removed and shortcuts restored.
-9. Re-enable, verify clean state.
+5. Right-click the bar, verify context menu appears with "Preferences" item.
+6. Click "Preferences" in the context menu, verify prefs window opens.
+7. Disable extension, verify bar removed and shortcuts restored.
+8. Re-enable, verify clean state.
 
 ### 8.3 Pre-Submission Review
 

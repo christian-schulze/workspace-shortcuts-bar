@@ -12,7 +12,6 @@ Targets GNOME Shell 45, 46, and 47.
 - Empty workspaces shown dimmed for spatial awareness
 - Workspace names displayed when set in GNOME settings
 - Configurable bar position (left, center, right)
-- Two indicator styles: highlight background or underline bar
 - GTK4/libadwaita preferences UI with interactive key capture
 
 ## Installation
@@ -57,7 +56,6 @@ Default bindings are `<Super>1` through `<Super>9` and `<Super>0` for workspace 
 ### Appearance
 
 - **Bar Position** -- Left, Center, or Right in the top panel
-- **Indicator Style** -- Highlight (background) or Indicator Bar (underline)
 - **Max Shortcuts** -- Number of shortcut slots (dynamic workspace mode only)
 
 ## Development
