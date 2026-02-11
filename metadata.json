@@ -2,7 +2,7 @@
     "uuid": "workspace-shortcuts-bar@christian-schulze.github.io",
     "name": "Workspace Shortcuts Bar",
     "description": "Adds workspace buttons to the top bar with configurable keyboard shortcuts for switching between up to 10 workspaces.",
-    "shell-version": ["45", "46", "47"],
+    "shell-version": ["45", "46", "47", "48", "49"],
     "url": "https://github.com/christian-schulze/workspace-shortcuts-bar",
     "settings-schema": "org.gnome.shell.extensions.workspace-shortcuts-bar",
     "gettext-domain": "workspace-shortcuts-bar"
