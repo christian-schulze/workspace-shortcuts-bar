@@ -57,6 +57,7 @@ pack: schemas ## Build extension ZIP for distribution
 		--extra-source=stylesheet.css \
 		--extra-source=lib/ \
 		.
+	zip $(UUID).shell-extension.zip schemas/gschemas.compiled
 	@echo "Built: $(UUID).shell-extension.zip"
 
 check: lint validate-schemas test ## Run all checks (lint, schema validation, tests)
