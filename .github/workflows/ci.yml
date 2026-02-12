@@ -57,7 +57,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y gnome-shell-common libglib2.0-dev-bin
+          sudo apt-get install -y --no-install-recommends gnome-shell libglib2.0-dev-bin
 
       - name: Compile schemas
         run: glib-compile-schemas schemas/
