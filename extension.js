@@ -28,6 +28,7 @@ export default class WorkspaceShortcutsBar extends Extension {
         this._savedBuiltinBindings = {};
         this._savedAppBindings = {};
         this._savedBuiltinMoveBindings = {};
+        this._workspaceSignalIds = [];
 
         this._buildBar();
         this._insertBarIntoPanel();
@@ -70,6 +71,7 @@ export default class WorkspaceShortcutsBar extends Extension {
         this._savedBuiltinBindings = null;
         this._savedAppBindings = null;
         this._savedBuiltinMoveBindings = null;
+        this._workspaceSignalIds = null;
     }
 
     _buildBar() {
@@ -423,10 +425,16 @@ export default class WorkspaceShortcutsBar extends Extension {
 
         // Workspace manager signals
         this._signalIds.push(
-            workspaceManager.connect('workspace-added', () => this._populateBar())
+            workspaceManager.connect('workspace-added', () => {
+                this._populateBar();
+                this._connectWorkspaceSignals();
+            })
         );
         this._signalIds.push(
-            workspaceManager.connect('workspace-removed', () => this._populateBar())
+            workspaceManager.connect('workspace-removed', () => {
+                this._populateBar();
+                this._connectWorkspaceSignals();
+            })
         );
         this._signalIds.push(
             workspaceManager.connect('active-workspace-changed', () => this._updateActiveButton())
@@ -483,6 +491,9 @@ export default class WorkspaceShortcutsBar extends Extension {
                 this._populateBar();
             })
         );
+
+        // Per-workspace window tracking signals for occupied state
+        this._connectWorkspaceSignals();
     }
 
     _disconnectSignals() {
@@ -515,5 +526,41 @@ export default class WorkspaceShortcutsBar extends Extension {
             }
             this._wmSettingsSignalIds = [];
         }
+
+        this._disconnectWorkspaceSignals();
+    }
+
+    _connectWorkspaceSignals() {
+        this._disconnectWorkspaceSignals();
+
+        const workspaceManager = global.workspace_manager;
+        const nWorkspaces = workspaceManager.get_n_workspaces();
+
+        for (let i = 0; i < nWorkspaces; i++) {
+            const workspace = workspaceManager.get_workspace_by_index(i);
+            if (!workspace)
+                continue;
+
+            const addedId = workspace.connect('window-added', () => {
+                this._updateOccupiedState();
+            });
+            const removedId = workspace.connect('window-removed', () => {
+                this._updateOccupiedState();
+            });
+
+            this._workspaceSignalIds.push({workspace, ids: [addedId, removedId]});
+        }
+    }
+
+    _disconnectWorkspaceSignals() {
+        if (!this._workspaceSignalIds)
+            return;
+
+        for (const {workspace, ids} of this._workspaceSignalIds) {
+            for (const id of ids) {
+                workspace.disconnect(id);
+            }
+        }
+        this._workspaceSignalIds = [];
     }
 }
