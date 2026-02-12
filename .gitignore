@@ -1,3 +1,4 @@
 node_modules/
 *.shell-extension.zip
 schemas/gschemas.compiled
+.idea

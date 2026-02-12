@@ -8,8 +8,9 @@ Targets GNOME Shell 45–49.
 
 - Clickable workspace buttons in the top panel with active workspace indication
 - Configurable keyboard shortcuts for workspaces 1-10
+- Move-window-to-workspace shortcuts (`<Super><Shift>1` through `<Super><Shift>0`)
+- Three-tier visual hierarchy: active, occupied (has windows), and empty workspaces
 - Supports both static and dynamic workspace modes
-- Empty workspaces shown dimmed for spatial awareness
 - Workspace names displayed when set in GNOME settings
 - Configurable bar position (left, center, right)
 - GTK4/libadwaita preferences UI with interactive key capture
@@ -41,7 +42,15 @@ gnome-extensions prefs workspace-shortcuts-bar@christian-schulze.github.io
 
 ### Keyboard Shortcuts
 
-Default bindings are `<Super>1` through `<Super>9` and `<Super>0` for workspace 10. Each shortcut can be remapped via the preferences UI.
+**Switch workspace:** Default bindings are `<Super>1` through `<Super>9` and `<Super>0` for workspace 10.
+
+**Move window to workspace:** Default bindings are `<Super><Shift>1` through `<Super><Shift>9` and `<Super><Shift>0` for workspace 10. Moves the currently focused window to the target workspace.
+
+All shortcuts can be remapped via the preferences UI.
+
+### Behavior
+
+- **Follow Window** -- When enabled (default), the view switches to the target workspace after moving a window. Disable to "send away" a window without leaving the current workspace.
 
 ### Appearance
 
